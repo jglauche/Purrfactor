@@ -39,12 +39,25 @@ class Rescope
     create_dirs(new_file)
     FileUtils.mv(old_file, new_file)
 
+    old_u = old.join.underscore
+    new_u = new.join.underscore
     @dirs.each do |dir|
       refactor(dir, old.join("::"), new.join("::"))
-      refactor(dir, old.join.underscore, new.join.underscore)
+      refactor(dir, old_u, new_u)
     end
-    # todo: Refactor db
 
+    # create a non-dangerous migration
+    timestamp = Time.now.strftime("%Y%m%d%H%M%S")
+    filename = "db/migrate/#{timestamp}_rename_#{old_u}_to_#{new_u}.rb"
+    puts "Creating migration #{filename}"
+
+    f = File.open(filename, "w")
+    f.puts "class Rename#{old_u.camelcase}To#{new_u.camelcase} < ActiveRecord::Migration"
+    f.puts "  def change"
+    f.puts "    rename_table :#{old_u.pluralize}, :#{new_u.pluralize}"
+    f.puts "  end"
+    f.puts "end"
+    f.close
   end
 
 end
