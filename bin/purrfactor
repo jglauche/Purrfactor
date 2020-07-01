@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'purrfactor'
+
+def print_help!
+  puts "Usage: purrfactor [mode] [args]"
+  puts ""
+  puts "purrfactor rescope [ObjectName] [new_scope]"
+  # puts "purrfactor rename old new"
+  #
+  puts "Note: to move models to no-scope, use . as new_scope"
+end
+
+if ARGV.size <= 2
+  print_help!
+  exit
+end
+
+if ARGV[0] == "rescope"
+  Rescope.new(ARGV[1], ARGV[2])
+end
+
+
+
