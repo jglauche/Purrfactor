@@ -3,9 +3,7 @@ class Rescope
 
   attr_accessor :old, :new, :dirs
 
-  def initialize(file, scope, dirs = ["app", "lib"])
-    puts "#{file} -> #{scope}"
-
+  def initialize(file, scope, dirs = ["app", "lib", "test"])
     @old = file.split("::").map{|x| x.upcase_first}
     if scope == "."
       @new = [@old.last]
@@ -25,19 +23,28 @@ class Rescope
 
   private
 
-  def to_file(name)
-    "app/models/" + name.map(&:underscore).join("/") + ".rb"
-  end
-
-  def rescope_model!
-    old_file = to_file(@old)
-    new_file = to_file(@new)
-    raise "#{old_file} not found" unless File.exists?(old_file)
-    raise "#{new_file} already exists" if File.exists?(new_file)
-
+  def move_file(target, add="")
+    old_file = to_file(target, @old, add)
+    new_file = to_file(target, @new, add)
+    if target == :model # let's run sanity checks only for model
+      raise "#{old_file} not found" unless File.exists?(old_file)
+      raise "#{new_file} already exists" if File.exists?(new_file)
+    else
+      # just silently ignore if we don't have a fixture
+      unless File.exists?(old_file)
+        puts "Fixture not found: #{old_file} . Skipping"
+        return
+      end
+    end
 
     create_dirs(new_file)
     FileUtils.mv(old_file, new_file)
+  end
+
+  def rescope_model!
+    move_file(:model)
+    move_file(:test_model, "_test")
+    move_file(:fixture)
 
     old_u = old.join.underscore
     new_u = new.join.underscore

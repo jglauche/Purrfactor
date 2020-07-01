@@ -20,7 +20,39 @@ module PurrTools
       f.write(c)
       f.close
     end
+  end
 
+  def to_file(to, name, add="")
+    str = ""
+    ext = ".rb"
+    pluralize = false
+
+    case to
+    when :model
+      str << "app/models/"
+    when :fixture
+      str << "test/fixtures/"
+      ext = ".yml"
+      pluralize = true
+    when :test_model
+      str << "test/models/"
+    else
+      str << to
+    end
+
+    case name
+    when Array
+      n = name.map(&:underscore)
+      if pluralize
+        n[-1] = n[-1].pluralize
+      end
+      str << n.join("/")
+    else
+      str << name
+    end
+    str << add
+    str << ext
+    str
   end
 
 end
