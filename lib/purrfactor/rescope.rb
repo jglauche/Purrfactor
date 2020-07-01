@@ -46,12 +46,17 @@ class Rescope
     move_file(:test_model, "_test")
     move_file(:fixture)
 
-    old_u = old.join.underscore
-    new_u = new.join.underscore
+    old_u = @old.join.underscore
+    new_u = @new.join.underscore
     @dirs.each do |dir|
       refactor(dir, old.join("::"), new.join("::"))
       refactor(dir, old_u, new_u)
     end
+
+    # fix test names
+    old_t = @old.join("::") + "Test"
+    new_t = @new.join("::") + "Test"
+    refactor("test", old_t, new_t)
 
     # create a non-dangerous migration
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
