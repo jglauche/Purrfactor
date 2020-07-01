@@ -64,7 +64,7 @@ class Rescope
     puts "Creating migration #{filename}"
 
     f = File.open(filename, "w")
-    f.puts "class Rename#{old_u.camelcase}To#{new_u.camelcase} < ActiveRecord::Migration"
+    f.puts "class Rename#{old_u.camelcase}To#{new_u.camelcase} < ActiveRecord::Migration[4.2]"
     f.puts "  def change"
     f.puts "    rename_table :#{old_u.pluralize}, :#{new_u.pluralize}"
     f.puts "  end"
