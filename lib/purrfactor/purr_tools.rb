@@ -55,6 +55,24 @@ module PurrTools
     str
   end
 
+  def load_schema
+    f = File.readlines("db/schema.rb")
+    db =  {}
+    cur = nil
+    # remove comments and empty lines
+    f.map(&:strip).delete_if{|l| l[0] == "#" or l == ""}[1..-2].each do |l|
+      if l[0..11] == "create_table"
+        name = l.split('"')[1]
+        db[name] = []
+        cur = name
+      elsif l[0] == "t"
+        db[cur] << l.split('"')[1]
+      end
+    end
+    db
+  end
+
+
 end
 
 
