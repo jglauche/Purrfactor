@@ -72,6 +72,19 @@ module PurrTools
     db
   end
 
+  def model_references(model)
+    plural = model.pluralize
+    h = {}
+    load_schema.each do |table, rows|
+      next if table == plural
+      rows.each do |field|
+        if field == "#{model}_id"
+          h[table] = field
+        end
+      end
+    end
+    h
+  end
 
 end
 
