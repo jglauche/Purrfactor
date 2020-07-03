@@ -103,22 +103,35 @@ module PurrTools
       end
 
       # scan for text in quotes or double quotes
-      res = l.scan(/"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/).flatten
+      res = l.scan(/".*?"|'.*?'/).flatten
       res.each do |r|
         next if r.nil?
-        # remove inline ERB code
-        r.gsub!(/\#{.*}/,"")
+
+        i18n_key = r.downcase.gsub(/[^a-z0-9 ]/, '').squeeze.strip.gsub(" ","_")
         result_line = line.gsub(r, "\e[35m" + r + "\e[37m")
-        key = r.strip.downcase.gsub(/[^a-z0-9 ]/, '').gsub(" ","_")
-        cmd_feedback(file, result_line, i, key)
+
+        # scan for inline erb code
+        erb = r.scan(/\#{.*}/)
+        case erb.size
+        when 0
+          suggestion = result_line.gsub(r, "t('.#{i18n_key}')")
+        when 1
+          suggestion = result_line.gsub(r, "t('.#{i18n_key}', s: #{erb.first[2..-2]})")
+        else
+          suggestion = ""
+          puts "cannot auto-convert this line"
+        end
+
+        cmd_feedback(file, result_line, i, suggestion)
       end
     end
   end
 
   def cmd_feedback(file, line, i, suggestion)
-    puts "\e[33mFile: #{file}\e[37m"
-    puts "#{i}: \t #{line}"
-    puts "#{suggestion} >"
+    puts "\e[33mFile: #{file}\e[37m line #{i}"
+    puts "\e[31m#{line}"
+    puts "\e[32m#{suggestion}"
+    puts "\e[37m "
   end
 
 end
