@@ -58,6 +58,8 @@ class Rescope
     new_t = @new.join("::") + "Test"
     refactor("test", old_t, new_t)
 
+
+
     # create a non-dangerous migration
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     filename = "db/migrate/#{timestamp}_rename_#{old_u}_to_#{new_u}.rb"
@@ -70,6 +72,7 @@ class Rescope
     f.puts "  end"
     f.puts "end"
     f.close
+    # FIXME: need to fix columns of everything that interfaces it
   end
 
 end

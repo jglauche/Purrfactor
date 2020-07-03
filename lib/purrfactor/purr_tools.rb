@@ -86,6 +86,29 @@ module PurrTools
     h
   end
 
-end
 
+  def scan_views
+    Dir.glob("./app/views/**/*.*").each do |f|
+      scan_view(f)
+    end
+  end
+
+  def scan_view(file)
+    f = File.readlines(file)
+    f.each_with_index do |line, i|
+      l = line
+      ['render', 'partial', 'autocomplete', 'if', 'content', 'id=', '_tag', 'meta', 'class', 'method', "I18n.t", "t(", "label"].each do |ignore|
+        l = l.split(ignore).first
+      end
+
+      res = l.scan(/"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/).flatten
+      res.each do |r|
+        next if r.nil?
+        line.gsub!(r, "\e[35m"+r+"\e[37m")
+      end
+      puts line
+    end
+  end
+
+end
 

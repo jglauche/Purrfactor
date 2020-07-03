@@ -11,6 +11,11 @@ def print_help!
   puts "Note: to move models to no-scope, use . as new_scope"
 end
 
+if ARGV[0] == "scan"
+  Purr18n.new
+  exit
+end
+
 if ARGV.size <= 2
   print_help!
   exit
