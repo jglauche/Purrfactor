@@ -97,10 +97,12 @@ module PurrTools
     f = File.readlines(file)
     f.each_with_index do |line, i|
       l = line
+      # ignore anything after common tags
       ['render', 'partial', 'autocomplete', 'if', 'content', 'id=', '_tag', 'meta', 'class', 'method', "I18n.t", "t(", "label"].each do |ignore|
         l = l.split(ignore).first
       end
 
+      # scan for text in quotes or double quotes
       res = l.scan(/"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/).flatten
       res.each do |r|
         next if r.nil?
