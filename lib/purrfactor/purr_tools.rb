@@ -106,8 +106,10 @@ module PurrTools
       res = l.scan(/"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/).flatten
       res.each do |r|
         next if r.nil?
-        result_line = line.gsub(r, "\e[35m"+r+"\e[37m")
-        key = r.downcase.gsub(/[^a-z0-9 ]/, '').gsub(" ","_")
+        # remove inline ERB code
+        r.gsub!(/\#{.*}/,"")
+        result_line = line.gsub(r, "\e[35m" + r + "\e[37m")
+        key = r.strip.downcase.gsub(/[^a-z0-9 ]/, '').gsub(" ","_")
         cmd_feedback(file, result_line, i, key)
       end
     end
