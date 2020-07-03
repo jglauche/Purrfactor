@@ -87,8 +87,8 @@ module PurrTools
   end
 
 
-  def scan_views
-    Dir.glob("./app/views/**/*.*").each do |f|
+  def scan_views(dir = "app/views")
+    Dir.glob("#{dir}/**/*.*").each do |f|
       scan_view(f)
     end
   end
@@ -106,10 +106,17 @@ module PurrTools
       res = l.scan(/"([^"\\]*(\\.[^"\\]*)*)"|\'([^\'\\]*(\\.[^\'\\]*)*)\'/).flatten
       res.each do |r|
         next if r.nil?
-        line.gsub!(r, "\e[35m"+r+"\e[37m")
+        result_line = line.gsub(r, "\e[35m"+r+"\e[37m")
+        key = r.downcase.gsub(/[^a-z0-9 ]/, '').gsub(" ","_")
+        cmd_feedback(file, result_line, i, key)
       end
-      puts line
     end
+  end
+
+  def cmd_feedback(file, line, i, suggestion)
+    puts "\e[33mFile: #{file}\e[37m"
+    puts "#{i}: \t #{line}"
+    puts "#{suggestion} >"
   end
 
 end
