@@ -101,7 +101,7 @@ module PurrTools
       ['render', 'partial', 'autocomplete', 'if', 'content', 'id=', '_tag', 'meta', 'class', 'method', "I18n.t", "t(", "label"].each do |ignore|
         l = l.split(ignore).first
       end
-
+      # FIXME: check for lines without any code
       # scan for text in quotes or double quotes
       res = l.scan(/".*?"|'.*?'/).flatten
       res.each do |r|

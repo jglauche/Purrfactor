@@ -1,29 +1,60 @@
 #!/usr/bin/env ruby
 
+require 'optimist'
 require 'purrfactor'
 
-def print_help!
-  puts "Usage: purrfactor [mode] [args]"
-  puts ""
-  puts "purrfactor rescope [ObjectName] [new_scope]"
-  # puts "purrfactor rename old new"
-  #
-  puts "Note: to move models to no-scope, use . as new_scope"
+COMMANDS = %w(scan rescope)
+
+def cmd_help(cmd)
+  case cmd
+  when "scan"
+    "scan for untranslated strings and attempt to resolve them"
+  when "rescope"
+    "move a model to another scope"
+  else
+    ""
+  end
 end
 
-if ARGV[0] == "scan"
-  Purr18n.new
+def fmt_banner(name, desc)
+  "  " + name.ljust(16) + desc
+end
+
+opts = Optimist::options do
+  banner "Usage: purrfactor [mode] [options]"
+  banner ""
+  banner "Available modes:"
+  banner fmt_banner("scan", cmd_help("scan"))
+  banner fmt_banner("rescope", cmd_help("rescope"))
+  banner ""
+  banner "Global options:"
+  stop_on COMMANDS
+end
+
+cmd = ARGV.shift
+cmd_opts = case cmd
+when "scan"
+  opts[:mode] = "scan"
+  Optimist::options do
+    banner cmd_help("scan")
+    opt :locale, "set locale", default: "en"
+  end
+when "rescope"
+  opts[:mode] = "rescope"
+  Optimist::options do
+    banner cmd_help("rescope")
+    opt :model, "set model to rescope", type: :string, required: true
+    opt :scope, "set new scope [set to . (dot) for root scope]", type: :string, required: true
+  end
+else
+  Optimist::educate
   exit
 end
+opts.merge!(cmd_opts)
 
-if ARGV.size <= 2
-  print_help!
-  exit
+case opts[:mode]
+when "scan"
+  Purr18n.new(opts)
+when "rescope"
+  Rescope.new(opts[:model], opts[:scope])
 end
-
-if ARGV[0] == "rescope"
-  Rescope.new(ARGV[1], ARGV[2])
-end
-
-
-
