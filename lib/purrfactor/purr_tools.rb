@@ -93,6 +93,19 @@ module PurrTools
     end
   end
 
+  def fmt_i18n_key(key, s=nil)
+    opts = ""
+    if s
+      opts = ", s: #{s}"
+    end
+
+    if @global
+      "t(:#{key}#{opts})"
+    else
+      "t('.#{key}'#{opts})"
+    end
+  end
+
   def scan_view(file)
     f = File.readlines(file)
     f.each_with_index do |line, i|
@@ -114,9 +127,9 @@ module PurrTools
         erb = r.scan(/\#{.*}/)
         case erb.size
         when 0
-          suggestion = result_line.gsub(r, "t('.#{i18n_key}')")
+          suggestion = result_line.gsub(r, fmt_i18n_key(i18n_key))
         when 1
-          suggestion = result_line.gsub(r, "t('.#{i18n_key}', s: #{erb.first[2..-2]})")
+          suggestion = result_line.gsub(r, fmt_i18n_key(i18n_key, erb.first[2..-2]))
         else
           suggestion = ""
           puts "cannot auto-convert this line"

@@ -38,6 +38,7 @@ when "scan"
   Optimist::options do
     banner cmd_help("scan")
     opt :locale, "set locale", default: "en"
+    opt :global, "use global i18n keys instead of local ones", default: false
   end
 when "rescope"
   opts[:mode] = "rescope"
