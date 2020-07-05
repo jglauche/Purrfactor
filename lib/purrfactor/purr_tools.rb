@@ -1,6 +1,6 @@
 module PurrTools
 
-  def available_locales
+  def get_locales
     Dir.glob("config/locales/??.yml").map{ |l|
       l.split("/").last.gsub(".yml","")
     }
@@ -108,7 +108,10 @@ module PurrTools
   def scan_views(dir = "app/views")
     Dir.glob("#{dir}/**/*.*").each do |f|
       @available_locales.each do |locale|
-        next if f.include?(".#{locale}.")
+        if f.include?(".#{locale}.")
+          @ignored_views << f if @test_mode
+          next
+        end
       end
       scan_view(f)
     end

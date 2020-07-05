@@ -5,7 +5,7 @@ class Purr18n
   def initialize(opts)
     @locale = opts[:locale]
     @global = opts[:global]
-    @available_locales = available_locales
+    @available_locales = get_locales
     scan_views
   end
 end

@@ -1,5 +1,14 @@
 class PurrToolsLoader
   include PurrTools
+
+  attr_accessor :available_locales
+  attr_accessor :test_mode, :ignored_views
+
+  def initialize
+    @test_mode = true
+    @ignored_views = []
+    @available_locales = get_locales
+  end
 end
 
 describe PurrTools do
@@ -20,7 +29,12 @@ describe PurrTools do
   end
 
   it 'finds available locales' do
-    expect(@loader.available_locales.sort).to eq ["de", "en"]
+    expect(@loader.get_locales.sort).to eq ["de", "en"]
+  end
+
+  it 'ignores locale file on scan' do
+    @loader.scan_views
+    expect(@loader.ignored_views).to eq ["app/views/welcome/index.de.html.erb"]
   end
 
 end
