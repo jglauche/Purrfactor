@@ -165,12 +165,37 @@ module PurrTools
       puts "unsupported file type: #{ft}"
       return
     end
+    multiline = false
+    last_indent = 0
+
     lines = File.readlines(file)
     lines.each_with_index do |line, i|
       case ft
       when "erb"
         rline = line.gsub(/(<.*>)|(\/\*.*\*\/)/,"")
+        if rline.index("<%")
+          multiline = true
+        end
+        if rline.index("%>")
+          multiline = false
+          next
+        end
+        if multiline
+          next
+        end
       when "haml"
+        indent = get_indent(line)
+        if line[0] == ":" # inline javascript, etc
+          multiline = true
+          last_indent = 1
+        end
+        if multiline
+          if line.strip.size > 0 && indent < last_indent
+            multiline = false
+          else
+            next
+          end
+        end
         rline = line.gsub(/(\.|!!!|-|=|%|#).*/,"")
       end
       unless rline.strip.empty?
@@ -178,6 +203,10 @@ module PurrTools
         cmd_feedback(file, line, i, add_print_tag(fmt_i18n_key(i18n_key), ft))
       end
     end
+  end
+
+  def get_indent(line)
+    line.split("  ").size - 1
   end
 
   def determine_file_type(file)
