@@ -105,6 +105,10 @@ module PurrTools
     end
   end
 
+  def mk_i18n_key(line)
+    line.downcase.gsub(/[^a-z0-9 ]/, '').squeeze(" ").strip.gsub(" ","_")
+  end
+
   def scan_views(dir = "app/views")
     Dir.glob("#{dir}/**/*.*").each do |f|
       @available_locales.each do |locale|
@@ -135,7 +139,7 @@ module PurrTools
       res.each do |r|
         next if r.nil?
 
-        i18n_key = r.downcase.gsub(/[^a-z0-9 ]/, '').squeeze.strip.gsub(" ","_")
+        i18n_key = mk_i18n_key(r)
         result_line = line.gsub(r, "\e[35m" + r + "\e[37m")
 
         # scan for inline erb code
@@ -156,9 +160,38 @@ module PurrTools
   end
 
   def scan_text(file)
+    ft = determine_file_type(file)
+    unless ["erb", "haml"].include? ft
+      puts "unsupported file type: #{ft}"
+      return
+    end
     lines = File.readlines(file)
     lines.each_with_index do |line, i|
+      case ft
+      when "erb"
+        rline = line.gsub(/(<.*>)|(\/\*.*\*\/)/,"")
+      when "haml"
+        rline = line.gsub(/(\.|!!!|-|=|%|#).*/,"")
+      end
+      unless rline.strip.empty?
+        i18n_key = mk_i18n_key(rline)
+        cmd_feedback(file, line, i, add_print_tag(fmt_i18n_key(i18n_key), ft))
+      end
+    end
+  end
 
+  def determine_file_type(file)
+    return file.split(".").last
+  end
+
+  def add_print_tag(tag, ft)
+    case ft
+    when "erb"
+      "<%= #{tag} %>"
+    when "haml"
+      "= #{tag}"
+    else
+      tag
     end
   end
 
