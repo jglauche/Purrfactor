@@ -18,4 +18,9 @@ describe PurrTools do
     expect(res.keys).to include "inventories", "pets"
     expect(res.values.uniq).to eq ["user_id"]
   end
+
+  it 'finds available locales' do
+    expect(@loader.available_locales.sort).to eq ["de", "en"]
+  end
+
 end

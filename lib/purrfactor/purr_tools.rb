@@ -1,5 +1,11 @@
 module PurrTools
 
+  def available_locales
+    Dir.glob("config/locales/??.yml").map{ |l|
+      l.split("/").last.gsub(".yml","")
+    }
+  end
+
   def create_dirs(file)
     dir = file.split("/")[0..-2].join("/")
     FileUtils.mkdir_p(dir)
@@ -86,13 +92,6 @@ module PurrTools
     h
   end
 
-
-  def scan_views(dir = "app/views")
-    Dir.glob("#{dir}/**/*.*").each do |f|
-      scan_view(f)
-    end
-  end
-
   def fmt_i18n_key(key, s=nil)
     opts = ""
     if s
@@ -106,15 +105,28 @@ module PurrTools
     end
   end
 
+  def scan_views(dir = "app/views")
+    Dir.glob("#{dir}/**/*.*").each do |f|
+      @available_locales.each do |locale|
+        next if f.include?(".#{locale}.")
+      end
+      scan_view(f)
+    end
+  end
+
   def scan_view(file)
-    f = File.readlines(file)
-    f.each_with_index do |line, i|
+    scan_tags(file)
+    scan_text(file)
+  end
+
+  def scan_tags(file)
+    lines = File.readlines(file)
+    lines.each_with_index do |line, i|
       l = line
       # ignore anything after common tags
       ['render', 'partial', 'autocomplete', 'if', 'content', 'id=', '_tag', 'meta', 'class', 'method', "I18n.t", "t(", "label"].each do |ignore|
         l = l.split(ignore).first
       end
-      # FIXME: check for lines without any code
       # scan for text in quotes or double quotes
       res = l.scan(/".*?"|'.*?'/).flatten
       res.each do |r|
@@ -137,6 +149,13 @@ module PurrTools
 
         cmd_feedback(file, result_line, i, suggestion)
       end
+    end
+  end
+
+  def scan_text(file)
+    lines = File.readlines(file)
+    lines.each_with_index do |line, i|
+
     end
   end
 
