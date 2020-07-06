@@ -122,6 +122,7 @@ module PurrTools
   end
 
   def scan_view(file)
+    # TODO: use haml parser for haml files
     scan_tags(file)
     scan_text(file)
   end
