@@ -122,9 +122,54 @@ module PurrTools
   end
 
   def scan_view(file)
-    # TODO: use haml parser for haml files
-    scan_tags(file)
-    scan_text(file)
+    case determine_file_type(file)
+    when "erb"
+      # TODO: this should be migrated to a proper erb parser
+      #scan_tags(file)
+      #scan_text(file)
+    when "haml"
+      scan_haml(file)
+    end
+  end
+
+  def scan_haml(file)
+    parser = HamlParser::Parser.new(filename: file)
+    ast = parser.call(File.read(file))
+    parse_haml_ast(ast)
+  end
+
+  def parse_haml_ast(ast)
+    if ast.respond_to? :text
+      puts ast.filename
+      text, key, opt_var = parse_erb_tags(ast.text)
+      i18n_key = fmt_i18n_key(key, opt_var)
+      cmd_feedback(ast.filename, fmt_match(ast.text, text), ast.lineno, i18n_key)
+    end
+    if ast.respond_to? :oneline_child
+      parse_haml_ast(ast.oneline_child)
+    end
+    if ast.respond_to? :children
+      ast.children.each do |child|
+        parse_haml_ast(child)
+      end
+    end
+  end
+
+  def parse_erb_tags(text)
+    opt_var = nil
+    key = ""
+    erb = text.scan(/\#{.*}/)
+    case erb.size
+    when 0
+      key = mk_i18n_key(text)
+    when 1
+      opt_var = erb.first[2..-2]
+      key = mk_i18n_key(text.gsub(erb.first, ""))
+      text = text.gsub(erb.first, "%s")
+    else
+      puts "cannot auto-convert this line"
+    end
+    return text, key, opt_var
   end
 
   def scan_tags(file)
@@ -139,21 +184,9 @@ module PurrTools
       res = l.scan(/".*?"|'.*?'/).flatten
       res.each do |r|
         next if r.nil?
-
-        i18n_key = mk_i18n_key(r)
+        # FIXME: if this is to be resurrected, re-add parse_erb_tags
+  #      i18n_key = mk_i18n_key(r)
         result_line = line.gsub(r, "\e[35m" + r + "\e[37m")
-
-        # scan for inline erb code
-        erb = r.scan(/\#{.*}/)
-        case erb.size
-        when 0
-          suggestion = result_line.gsub(r, fmt_i18n_key(i18n_key))
-        when 1
-          suggestion = result_line.gsub(r, fmt_i18n_key(i18n_key, erb.first[2..-2]))
-        else
-          suggestion = ""
-          puts "cannot auto-convert this line"
-        end
 
         cmd_feedback(file, result_line, i, suggestion)
       end
@@ -167,38 +200,21 @@ module PurrTools
       return
     end
     multiline = false
-    last_indent = 0
 
     lines = File.readlines(file)
     lines.each_with_index do |line, i|
-      case ft
-      when "erb"
-        rline = line.gsub(/(<.*>)|(\/\*.*\*\/)/,"")
-        if rline.index("<%")
-          multiline = true
-        end
-        if rline.index("%>")
-          multiline = false
-          next
-        end
-        if multiline
-          next
-        end
-      when "haml"
-        indent = get_indent(line)
-        if line[0] == ":" # inline javascript, etc
-          multiline = true
-          last_indent = 1
-        end
-        if multiline
-          if line.strip.size > 0 && indent < last_indent
-            multiline = false
-          else
-            next
-          end
-        end
-        rline = line.gsub(/(\.|!!!|-|=|%|#).*/,"")
+      rline = line.gsub(/(<.*>)|(\/\*.*\*\/)/,"")
+      if rline.index("<%")
+        multiline = true
       end
+      if rline.index("%>")
+        multiline = false
+        next
+      end
+      if multiline
+        next
+      end
+      rline = line.gsub(/(\.|!!!|-|=|%|#).*/,"")
       unless rline.strip.empty?
         i18n_key = mk_i18n_key(rline)
         cmd_feedback(file, line, i, add_print_tag(fmt_i18n_key(i18n_key), ft))
@@ -223,6 +239,10 @@ module PurrTools
     else
       tag
     end
+  end
+
+  def fmt_match(line, m)
+    line.gsub(m, "\e[35m" + m + "\e[37m")
   end
 
   def cmd_feedback(file, line, i, suggestion)
