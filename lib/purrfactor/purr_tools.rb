@@ -140,10 +140,7 @@ module PurrTools
 
   def parse_haml_ast(ast)
     if ast.respond_to? :text
-      puts ast.filename
-      text, key, opt_var = parse_erb_tags(ast.text)
-      i18n_key = fmt_i18n_key(key, opt_var)
-      cmd_feedback(ast.filename, fmt_match(ast.text, text), ast.lineno, i18n_key)
+      process_line(ast.filename, ast.text, ast.lineno)
     end
     if ast.respond_to? :oneline_child
       parse_haml_ast(ast.oneline_child)
@@ -153,6 +150,12 @@ module PurrTools
         parse_haml_ast(child)
       end
     end
+  end
+
+  def process_line(filename, text, line_number)
+    match_text, key, opt_var = parse_erb_tags(text)
+    i18n_key = fmt_i18n_key(key, opt_var)
+    cmd_feedback(filename, fmt_match(text, match_text), line_number, i18n_key)
   end
 
   def parse_erb_tags(text)
