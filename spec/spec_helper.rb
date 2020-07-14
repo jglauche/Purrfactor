@@ -15,6 +15,7 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
 require './lib/purrfactor'
+require './lib/test_loader'
 
 $exec_dir = Dir.pwd
 

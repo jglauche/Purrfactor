@@ -249,6 +249,11 @@ module PurrTools
   end
 
   def cmd_feedback(file, line, i, suggestion)
+    if @test_mode
+      test_feedback(file, line, i, suggestion)
+      return
+    end
+
     puts "\e[33mFile: #{file}\e[37m line #{i}"
     puts "\e[31m#{line}"
     puts "\e[32m#{suggestion}"

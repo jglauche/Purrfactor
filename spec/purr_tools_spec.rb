@@ -1,20 +1,7 @@
-class PurrToolsLoader
-  include PurrTools
-
-  attr_accessor :available_locales
-  attr_accessor :test_mode, :ignored_views
-
-  def initialize
-    @test_mode = true
-    @ignored_views = []
-    @available_locales = get_locales
-  end
-end
-
 describe PurrTools do
   before do
     Dir.chdir($exec_dir + "/spec/sample_app_rails6/")
-    @loader = PurrToolsLoader.new
+    @loader = TestLoader.new
   end
 
   it 'reads schema.rb' do
