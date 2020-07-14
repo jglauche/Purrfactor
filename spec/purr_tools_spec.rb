@@ -21,7 +21,7 @@ describe PurrTools do
 
   it 'ignores locale file on scan' do
     @loader.scan_views
-    expect(@loader.ignored_views).to eq ["app/views/welcome/index.de.html.erb"]
+    expect(@loader.ignored_views.sort).to eq ["app/views/welcome/index.de.html.erb", "app/views/welcome/index.de.html.haml"]
   end
 
 end
