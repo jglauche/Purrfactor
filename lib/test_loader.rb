@@ -9,7 +9,7 @@ class TestLoader
     @test_mode = true
     @ignored_views = []
     @available_locales = get_locales
-    @matches = []
+    @matches = {}
     @test_files = []
     @test_lines = []
     @test_i = []

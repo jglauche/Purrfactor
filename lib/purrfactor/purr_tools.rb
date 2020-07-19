@@ -121,7 +121,13 @@ module PurrTools
     end
   end
 
+  def set_file(file)
+    @file = file
+    @file_i = nil
+  end
+
   def scan_view(file)
+    set_file(file)
     case determine_file_type(file)
     when "erb"
       # TODO: this should be migrated to a proper erb parser
@@ -140,7 +146,8 @@ module PurrTools
 
   def parse_haml_ast(ast)
     if ast.respond_to? :text
-      process_line(ast.filename, ast.text, ast.lineno)
+      @file_i = ast.lineno
+      process_line(ast.text)
     end
     if ast.respond_to? :oneline_child
       parse_haml_ast(ast.oneline_child)
@@ -152,21 +159,52 @@ module PurrTools
     end
   end
 
-  def process_line(filename, text, line_number)
-    match_text, key, opt_var = parse_erb_tags(text)
-    # TODO: opt_var (the inside of erb tags found) needs to be checked for strings
-    # FIXME: requirement for that is to have the ability to process multiple matches per line
-    # puts " > "+opt_var.to_s
+  def create_match(match_text, i18n_key, key)
+   @matches[@file] ||= {}
+   @matches[@file][@file_i] ||= []
+   @matches[@file][@file_i] << Match.new(@file, @file_i, match_text, i18n_key, key)
+  end
 
+  def process_line(text)
+    match_text, key, opt_var = parse_erb_tags(text)
     i18n_key = fmt_i18n_key(key, opt_var)
-    @matches << Match.new(filename, line_number, match_text, i18n_key, key)
+    create_match(match_text, i18n_key, key)
     parse_erb_for_text(opt_var)
-    cmd_feedback(filename, fmt_match(text, match_text), line_number, i18n_key)
+    cmd_feedback(@file, fmt_match(text, match_text), @file_i, i18n_key)
+  end
+
+  def check_string_context(sym, text)
+    case sym.to_s
+    when "class"
+    when "method"
+    else
+      match_text, key, opt_var = parse_erb_tags(text)
+      i18n_key = fmt_i18n_key(key, opt_var)
+      create_match(match_text, i18n_key, key)
+    end
   end
 
   def parse_erb_for_text(erb)
     return if erb == nil
-    puts erb
+    @last_symbol = nil
+    parse_ast(Parser::CurrentRuby.parse(erb))
+  end
+
+  def parse_ast(node)
+    case node
+    when Array
+      node.each_with_index do |x|
+        parse_ast(x)
+      end
+    when Parser::AST::Node
+      node.children.each_with_index do |x|
+        parse_ast(x)
+      end
+    when Symbol
+      @last_symbol = node
+    when String
+      check_string_context(@last_symbol, node)
+    end
   end
 
   def parse_erb_tags(text)
