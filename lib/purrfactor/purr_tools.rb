@@ -160,9 +160,9 @@ module PurrTools
   end
 
   def create_match(match_text, i18n_key, key)
-   @matches[@file] ||= {}
-   @matches[@file][@file_i] ||= []
-   @matches[@file][@file_i] << Match.new(@file, @file_i, match_text, i18n_key, key)
+    @matches[@file] ||= {}
+    @matches[@file][@file_i] ||= []
+    @matches[@file][@file_i] << Match.new(@file, @file_i, match_text, i18n_key, key)
   end
 
   def process_line(text)
