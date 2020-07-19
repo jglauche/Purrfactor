@@ -17,9 +17,7 @@ describe Purr18n do
 
     expect(@loader.test_suggestions[5]).to eq "%h3= t('.cancel_my_account')"
 
-    expect(@loader.test_suggestions[6]).to eq "= t('.unhappy', s: button_to t('.cancel_my_account'), registration_path(resource_name), data: { confirm: t('.are_you_sure') }, method: :delete)"
-
-
+    expect(@loader.test_suggestions[6]).to eq "= t('.unhappy', s:(button_to t('.cancel_my_account'), registration_path(resource_name), data: { confirm: t('.are_you_sure') }, method: :delete))"
 
 
   end
