@@ -154,8 +154,19 @@ module PurrTools
 
   def process_line(filename, text, line_number)
     match_text, key, opt_var = parse_erb_tags(text)
+    # TODO: opt_var (the inside of erb tags found) needs to be checked for strings
+    # FIXME: requirement for that is to have the ability to process multiple matches per line
+    # puts " > "+opt_var.to_s
+
     i18n_key = fmt_i18n_key(key, opt_var)
+    @matches << Match.new(filename, line_number, match_text, i18n_key, key)
+    parse_erb_for_text(opt_var)
     cmd_feedback(filename, fmt_match(text, match_text), line_number, i18n_key)
+  end
+
+  def parse_erb_for_text(erb)
+    return if erb == nil
+    puts erb
   end
 
   def parse_erb_tags(text)

@@ -6,6 +6,7 @@ class Purr18n
     @locale = opts[:locale]
     @global = opts[:global]
     @available_locales = get_locales
+    @matches = []
     scan_views
   end
 end
