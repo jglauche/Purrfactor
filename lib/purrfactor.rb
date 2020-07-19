@@ -1,6 +1,7 @@
 require 'active_support'
 require 'active_support/all'
 
+require 'parser/current'
 require 'haml_parser'
 require 'haml_parser/parser'
 
