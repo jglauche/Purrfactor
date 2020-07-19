@@ -20,7 +20,7 @@ class TestLoader
     @test_files << file
     @test_lines << line
     @test_i << i
-    @test_suggestions << suggestion
+    @test_suggestions << suggestion.strip
   end
 end
 

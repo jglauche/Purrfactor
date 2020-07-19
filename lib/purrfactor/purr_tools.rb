@@ -136,6 +136,7 @@ module PurrTools
     when "haml"
       scan_haml(file)
     end
+    handle_matches_for_cur_file
   end
 
   def scan_haml(file)
@@ -144,13 +145,14 @@ module PurrTools
     parse_haml_ast(ast)
   end
 
-  def parse_haml_ast(ast)
+  def parse_haml_ast(ast, inline=false)
+    @inline = inline
     if ast.respond_to? :text
       @file_i = ast.lineno
       process_line(ast.text)
     end
     if ast.respond_to? :oneline_child
-      parse_haml_ast(ast.oneline_child)
+      parse_haml_ast(ast.oneline_child, true)
     end
     if ast.respond_to? :children
       ast.children.each do |child|
@@ -159,18 +161,17 @@ module PurrTools
     end
   end
 
-  def create_match(match_text, i18n_key, key)
+  def create_match(text, key, i18n_key, i18n_val, add_inline_key=false)
     @matches[@file] ||= {}
     @matches[@file][@file_i] ||= []
-    @matches[@file][@file_i] << Match.new(@file, @file_i, match_text, i18n_key, key)
+    @matches[@file][@file_i] << Match.new(text, key, i18n_key, i18n_val, add_inline_key)
   end
 
   def process_line(text)
     match_text, key, opt_var = parse_erb_tags(text)
     i18n_key = fmt_i18n_key(key, opt_var)
-    create_match(match_text, i18n_key, key)
+    create_match(text, i18n_key, key, match_text, true)
     parse_erb_for_text(opt_var)
-    cmd_feedback(@file, fmt_match(text, match_text), @file_i, i18n_key)
   end
 
   def check_string_context(sym, text)
@@ -180,7 +181,7 @@ module PurrTools
     else
       match_text, key, opt_var = parse_erb_tags(text)
       i18n_key = fmt_i18n_key(key, opt_var)
-      create_match(match_text, i18n_key, key)
+      create_match(text, i18n_key, key, match_text)
     end
   end
 
@@ -293,14 +294,40 @@ module PurrTools
     end
   end
 
+  def handle_matches_for_cur_file
+    return unless @matches[@file]
+    lines = File.readlines(@file)
+    ft = determine_file_type(@file)
+    @matches[@file].each do |file_i, arr|
+      line = lines[file_i-1].dup
+
+      # this can probably be moved into cmd_feedback
+      arr.each do |x|
+        if x.add_inline_key
+          # for inline haml text we need to get rid of the space after the tag
+          # as it is interpreted as plain text otherwise
+          # TODO: check if this breaks on erb files
+          line.gsub!(" #{x.match}", add_print_tag(x.replace, ft))
+        end
+        line.gsub!(x.match, x.replace)
+      end
+      cmd_feedback(@file, lines[file_i-1], file_i, line, arr)
+    end
+  end
+
   def fmt_match(line, m)
     line.gsub(m, "\e[35m" + m + "\e[37m")
   end
 
-  def cmd_feedback(file, line, i, suggestion)
+  # this needs to be refactored
+  def cmd_feedback(file, line, i, suggestion, matches)
     if @test_mode
       test_feedback(file, line, i, suggestion)
       return
+    end
+
+    matches.each do |m|
+      line = fmt_match(line, m.match)
     end
 
     puts "\e[33mFile: #{file}\e[37m line #{i}"
