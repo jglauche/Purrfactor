@@ -124,6 +124,7 @@ module PurrTools
   def set_file(file)
     @file = file
     @file_i = nil
+    @file_line = nil
   end
 
   def scan_view(file)
@@ -181,13 +182,24 @@ module PurrTools
     else
       match_text, key, opt_var = parse_erb_tags(text)
       i18n_key = fmt_i18n_key(key, opt_var)
-      create_match(text, i18n_key, key, match_text)
+      delimiter = check_delimiter(text)
+      create_match(wrap_in_delimiter(text, delimiter), i18n_key, key, match_text)
     end
+  end
+
+  def check_delimiter(text)
+    raise "@file_line cannot be nil for this method" if @file_line == nil
+    @file_line[@file_line.index(text)-1]
+  end
+
+  def wrap_in_delimiter(text, d)
+    "#{d}#{text}#{d}"
   end
 
   def parse_erb_for_text(erb)
     return if erb == nil
     @last_symbol = nil
+    @file_line = erb
     parse_ast(Parser::CurrentRuby.parse(erb))
   end
 
