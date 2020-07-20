@@ -55,7 +55,7 @@ opts.merge!(cmd_opts)
 
 case opts[:mode]
 when "scan"
-  Purr18n.new(opts)
+  Purr18n.new(opts).scan_views
 when "rescope"
   Rescope.new(opts[:model], opts[:scope])
 end
