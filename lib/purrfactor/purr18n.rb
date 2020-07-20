@@ -265,10 +265,14 @@ class Purr18n
       line = fmt_match(line, m.match)
     end
 
-    puts "\e[33mFile: #{file}\e[37m line #{i}"
-    puts "\e[31m#{line}"
+    puts "\e[0;33mFile:\e[1;33m #{file}\e[0;33m line \e[1;35m#{i}"
+    puts "\e[0;31m#{line}"
     puts "\e[32m#{suggestion}"
-    puts "\e[37m "
+    matches.each do |m|
+      puts "\e[0;33mI18n: \e[0;36m#{m.i18n_key}: \e[1;35m#{m.i18n_val}"
+    end
+    puts "\e[0;37m"
+    puts ""
   end
 
 
