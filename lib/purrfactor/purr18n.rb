@@ -12,7 +12,13 @@ class Purr18n
   def fmt_i18n_key(key, s=nil)
     opts = ""
     if s
-      opts = ", s: #{s}"
+      # check if we need to put erb code in round parentheses
+      # could be done more elaborate
+      if s.strip.index(" ")
+        opts = ", s: (#{s})"
+      else
+        opts = ", s: #{s}"
+      end
     end
 
     if @global
