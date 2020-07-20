@@ -8,7 +8,6 @@ describe Purr18n do
     file = "app/views/devise/registrations/edit.html.haml"
     @loader.scan_view(file)
 
-
     res = [
       "= t('.edit', s: resource_name.to_s.humanize)",
       "= t('.currently_waiting_confirmation_for', s: resource.unconfirmed_email)",
@@ -20,6 +19,32 @@ describe Purr18n do
     ]
     cmp_array(@loader.test_suggestions, res)
 
+    keys = [
+      "edit",
+      "currently_waiting_confirmation_for",
+      "leave_blank_if_you_dont_want_to_change_it",
+      "characters_minimum",
+      "we_need_your_current_password_to_confirm_your_changes",
+      "cancel_my_account",
+      "unhappy",
+      "cancel_my_account",
+      "are_you_sure",
+    ]
+
+    vals = [
+      "Edit %s",
+      "Currently waiting confirmation for: %s",
+      "(leave blank if you don't want to change it)",
+      "characters minimum",
+      "(we need your current password to confirm your changes)",
+      "Cancel my account",
+      "Unhappy? %s",
+      "Cancel my account",
+      "Are you sure?",
+    ]
+
+    cmp_array(@loader.test_i18n_keys, keys)
+    cmp_array(@loader.test_i18n_vals, vals)
   end
 
 end

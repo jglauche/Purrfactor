@@ -257,7 +257,7 @@ class Purr18n
   # this needs to be refactored
   def cmd_feedback(file, line, i, suggestion, matches)
     if @test_mode
-      test_feedback(file, line, i, suggestion)
+      test_feedback(file, line, i, suggestion, matches)
       return
     end
 
