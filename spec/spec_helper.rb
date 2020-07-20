@@ -104,3 +104,10 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
 end
+
+def cmp_array(a, b)
+  expect(a.size).to eq b.size
+  a.each_with_index do |x, i|
+    expect(x).to eq b[i]
+  end
+end

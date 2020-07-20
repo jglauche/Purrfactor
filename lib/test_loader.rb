@@ -2,6 +2,7 @@ class TestLoader < Purr18n
   attr_accessor :available_locales
   attr_accessor :test_mode, :ignored_views
   attr_accessor :test_files, :test_lines, :test_i, :test_suggestions
+  attr_accessor :matches
 
   def initialize
     @test_mode = true
