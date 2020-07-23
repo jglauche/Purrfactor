@@ -4,6 +4,8 @@ require 'active_support/all'
 require 'parser/current'
 require 'haml_parser'
 require 'haml_parser/parser'
+require 'html2haml'
+
 
 require 'purrfactor/match'
 require 'purrfactor/purr_tools'

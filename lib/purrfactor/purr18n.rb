@@ -6,6 +6,7 @@ class Purr18n
     @locale = opts[:locale]
     @global = opts[:global]
     @available_locales = get_locales
+    @rescan_lineno = false
     @matches = {}
   end
 
@@ -54,13 +55,20 @@ class Purr18n
     set_file(file)
     case determine_file_type(file)
     when "erb"
-      # TODO: this should be migrated to a proper erb parser
-      #scan_tags(file)
-      #scan_text(file)
+      @rescan_lineno = true
+      scan_html(file)
     when "haml"
       scan_haml(file)
     end
     handle_matches_for_cur_file
+  end
+
+  def scan_html(file)
+    parser = HamlParser::Parser.new(filename: file)
+    ast = parser.call(
+      Html2haml::HTML.new(File.read(file), {erb: true}).render
+    )
+    parse_haml_ast(ast)
   end
 
   def scan_haml(file)
@@ -86,9 +94,22 @@ class Purr18n
   end
 
   def create_match(text, key, i18n_key, i18n_val, add_inline_key=false)
+    find_actual_line_number_for_match(text) if @rescan_lineno # find the actual line number if we convert code
     @matches[@file] ||= {}
     @matches[@file][@file_i] ||= []
     @matches[@file][@file_i] << Match.new(text, key, i18n_key, i18n_val, add_inline_key)
+  end
+
+  def find_actual_line_number_for_match(text)
+    # FIXME: this doesn't work like this as the match found is haml code.
+    # this is probably not reasonable to do
+    File.readlines(@file).each_with_index do |line, i|
+      if line.index(line) != nil
+        puts "Search for #{text}, found at #{i} > #{line}"
+        @line_i = i
+        return
+      end
+    end
   end
 
   def process_line(text)
