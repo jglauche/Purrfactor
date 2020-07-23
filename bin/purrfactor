@@ -37,6 +37,7 @@ when "scan"
   opts[:mode] = "scan"
   Optimist::options do
     banner cmd_help("scan")
+    opt :file, "specify file or directory", default: "app/views"
     opt :locale, "set locale", default: "en"
     opt :global, "use global i18n keys instead of local ones", default: false
   end
@@ -55,7 +56,12 @@ opts.merge!(cmd_opts)
 
 case opts[:mode]
 when "scan"
-  Purr18n.new(opts).scan_views
+  p = Purr18n.new(opts)
+  if Dir.exist?(opts[:file])
+    p.scan_views(opts[:file])
+  else
+    p.scan_view(opts[:file])
+  end
 when "rescope"
   Rescope.new(opts[:model], opts[:scope])
 end
