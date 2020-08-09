@@ -24,4 +24,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "optimist"
   s.add_runtime_dependency "haml_parser"
   s.add_runtime_dependency "parser"
+  s.add_runtime_dependency "nokogiri"
 end
