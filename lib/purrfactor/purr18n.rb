@@ -54,9 +54,7 @@ class Purr18n
     set_file(file)
     case determine_file_type(file)
     when "erb"
-      # TODO: this should be migrated to a proper erb parser
-      #scan_tags(file)
-      #scan_text(file)
+      scan_erb(file)
     when "haml"
       scan_haml(file)
     end
@@ -121,6 +119,10 @@ class Purr18n
 
   def parse_erb_for_text(erb)
     return if erb == nil
+    if erb[0..0] == "="
+      erb = erb[1..-1].strip
+    end
+    puts erb
     @last_symbol = nil
     @file_line = erb
     parse_ast(Parser::CurrentRuby.parse(erb))
@@ -158,6 +160,35 @@ class Purr18n
       puts "cannot auto-convert this line"
     end
     return text, key, opt_var
+  end
+
+  def scan_erb(file)
+    f = File.read(file)
+    # since Nokogiri will ignore erb tags, gonna change them
+    f.gsub!("<%", "{erb_tag}").gsub!("%>","{/erb_tag}")
+    parse_nokogiri(Nokogiri::HTML(f))
+  end
+
+  def parse_nokogiri(node)
+    if node.children
+      node.children.each do |child|
+        parse_nokogiri(child)
+      end
+    end
+    if node.kind_of? Nokogiri::XML::Text
+      parse_nokogiri_text(node.text)
+    end
+  end
+
+  def parse_nokogiri_text(text)
+    return if text == ""
+    stripped_text = text.gsub(/{erb_tag}(.*){\/erb_tag}/,"{erb_inner}").strip
+    return if stripped_text.nil?
+    return if stripped_text == ""
+    return if stripped_text == "{erb_inner}"
+    # TODO: continue to parse it here. This seems to work mostly
+    # remember: need to parse the inner of ERB tags for text
+    puts stripped_text
   end
 
   def scan_tags(file)

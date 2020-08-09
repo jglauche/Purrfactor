@@ -4,6 +4,49 @@ describe Purr18n do
     @loader = TestLoader.new
   end
 
+  describe "scan devise unlock_instructions" do
+    after do
+      keys = [
+        "hello",
+        "your_account_has_been_locked_due_to_an_excessive_number_of_unsuccessful_sign_in_attempts",
+        "click_the_link_below_to_unlock_your_account",
+      ]
+      vals = [
+        "Hello %s!",
+        "Your account has been locked due to an excessive number of unsuccessful sign in attempts.",
+        "Click the link below to unlock your account:",
+      ]
+      cmp_array(@loader.test_i18n_keys, keys)
+      cmp_array(@loader.test_i18n_vals, vals)
+    end
+
+    it 'scans the erb version' do
+      @file = "app/views/devise/mailer/unlock_instructions.html.erb"
+      @loader.scan_view(@file)
+
+      # FIXME
+      res = [
+        "<%= t('.hello', s: @resource.email) %>",
+        "%p= t('.your_account_has_been_locked_due_to_an_excessive_number_of_unsuccessful_sign_in_attempts')",
+        "%p= t('.click_the_link_below_to_unlock_your_account')",
+      ]
+      cmp_array(@loader.test_suggestions, res)
+    end
+
+    it 'scans the haml version' do
+      @file = "app/views/devise/mailer/unlock_instructions.html.haml"
+      @loader.scan_view(@file)
+
+      res = [
+        "= t('.hello', s: @resource.email)",
+        "%p= t('.your_account_has_been_locked_due_to_an_excessive_number_of_unsuccessful_sign_in_attempts')",
+        "%p= t('.click_the_link_below_to_unlock_your_account')",
+      ]
+      cmp_array(@loader.test_suggestions, res)
+    end
+
+  end
+
   describe "scan devise edit.html.haml" do
     before do
       @file = "app/views/devise/registrations/edit.html.haml"
