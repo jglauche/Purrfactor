@@ -165,7 +165,7 @@ class Purr18n
   def scan_erb(file)
     f = File.read(file)
     # since Nokogiri will ignore erb tags, gonna change them
-    f.gsub!("<%", "{erb_tag}").gsub!("%>","{/erb_tag}")
+    f = f.gsub("<%", "{erb_tag}").gsub("%>","{/erb_tag}")
     parse_nokogiri(Nokogiri::HTML(f))
   end
 
@@ -176,19 +176,19 @@ class Purr18n
       end
     end
     if node.kind_of? Nokogiri::XML::Text
+      @file_i = node.line
       parse_nokogiri_text(node.text)
     end
   end
 
   def parse_nokogiri_text(text)
     return if text == ""
-    stripped_text = text.gsub(/{erb_tag}(.*){\/erb_tag}/,"{erb_inner}").strip
-    return if stripped_text.nil?
+    stripped_text = text.gsub(/{erb_tag}(.*){\/erb_tag}/,"{erb_inner}").gsub("\n","").gsub("{erb_inner}","").strip
     return if stripped_text == ""
-    return if stripped_text == "{erb_inner}"
     # TODO: continue to parse it here. This seems to work mostly
     # remember: need to parse the inner of ERB tags for text
-    puts stripped_text
+    @file_line = stripped_text
+    process_line(stripped_text)
   end
 
   def scan_tags(file)
