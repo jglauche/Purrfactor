@@ -48,11 +48,12 @@ class Purr18n
     @file = file
     @file_i = nil
     @file_line = nil
+    @file_type = nil
   end
 
   def scan_view(file)
     set_file(file)
-    case determine_file_type(file)
+    case @file_type = determine_file_type(file)
     when "erb"
       scan_erb(file)
     when "haml"
@@ -187,8 +188,9 @@ class Purr18n
     return if stripped_text == ""
     # TODO: continue to parse it here. This seems to work mostly
     # remember: need to parse the inner of ERB tags for text
-    @file_line = stripped_text
-    process_line(stripped_text)
+    erb_text = text.gsub(/{erb_tag}/, '#{').gsub(/{\/erb_tag}/, '}')
+    @file_line = erb_text
+    process_line(erb_text)
   end
 
   def scan_tags(file)
@@ -213,9 +215,8 @@ class Purr18n
   end
 
   def scan_text(file)
-    ft = determine_file_type(file)
-    unless ["erb", "haml"].include? ft
-      puts "unsupported file type: #{ft}"
+    unless ["erb", "haml"].include? @file_type
+      puts "unsupported file type: #{@file_type}"
       return
     end
     multiline = false
@@ -236,7 +237,7 @@ class Purr18n
       rline = line.gsub(/(\.|!!!|-|=|%|#).*/,"")
       unless rline.strip.empty?
         i18n_key = mk_i18n_key(rline)
-        cmd_feedback(file, line, i, add_print_tag(fmt_i18n_key(i18n_key), ft))
+        cmd_feedback(file, line, i, add_print_tag(fmt_i18n_key(i18n_key), @file_type))
       end
     end
   end
@@ -256,14 +257,13 @@ class Purr18n
     when "haml"
       "= #{tag}"
     else
-      tag
+      raise "unknown file type #{ft}"
     end
   end
 
   def handle_matches_for_cur_file
     return unless @matches[@file]
     lines = File.readlines(@file)
-    ft = determine_file_type(@file)
     @matches[@file].each do |file_i, arr|
       line = lines[file_i-1].dup
 
@@ -273,7 +273,7 @@ class Purr18n
           # for inline haml text we need to get rid of the space after the tag
           # as it is interpreted as plain text otherwise
           # TODO: check if this breaks on erb files
-          line.gsub!(" #{x.match}", add_print_tag(x.replace, ft))
+          line.gsub!(" #{x.match}", add_print_tag(x.replace, @file_type))
         end
         line.gsub!(x.match, x.replace)
       end
