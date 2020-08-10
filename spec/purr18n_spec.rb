@@ -24,11 +24,10 @@ describe Purr18n do
       @file = "app/views/devise/mailer/unlock_instructions.html.erb"
       @loader.scan_view(@file)
 
-      # FIXME
       res = [
-        "<%= t('.hello', s: @resource.email) %>",
-        "%p= t('.your_account_has_been_locked_due_to_an_excessive_number_of_unsuccessful_sign_in_attempts')",
-        "%p= t('.click_the_link_below_to_unlock_your_account')",
+        "<p><%= t('.hello', s: @resource.email) %></p>",
+        "<p><%= t('.your_account_has_been_locked_due_to_an_excessive_number_of_unsuccessful_sign_in_attempts') %></p>",
+        "<p><%= t('.click_the_link_below_to_unlock_your_account') %></p>",
       ]
       cmp_array(@loader.test_suggestions, res)
     end
